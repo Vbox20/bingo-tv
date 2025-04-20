@@ -30,13 +30,13 @@
       font-size: 18px;
       border-radius: 8px;
       cursor: pointer;
-      transition: background 0.3s;
+      transition: all 0.3s;
     }
     button:hover {
       background: #45a049;
     }
     button:active {
-      transform: scale(0.98);
+      transform: scale(0.95);
     }
     button#resetar {
       background: #f44336;
@@ -70,12 +70,74 @@
       margin: 5px;
       font-weight: bold;
     }
+    
+    /* Animação do globo de bingo */
+    .bingo-globe {
+      width: 120px;
+      height: 120px;
+      margin: 20px auto;
+      border-radius: 50%;
+      background: radial-gradient(circle at 70% 30%, #fff, #5d9cec);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      position: relative;
+      overflow: hidden;
+      display: none;
+    }
+    
+    .bingo-globe.active {
+      display: block;
+      animation: spin 1.5s ease-in-out;
+    }
+    
+    .bingo-ball {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      opacity: 0.8;
+    }
+    
+    .ball-1 { top: 30%; left: 20%; animation: bounce 0.8s infinite alternate; }
+    .ball-2 { top: 50%; left: 50%; animation: bounce 1s infinite alternate 0.3s; }
+    .ball-3 { top: 70%; left: 30%; animation: bounce 1.2s infinite alternate 0.1s; }
+    .ball-4 { top: 40%; left: 70%; animation: bounce 0.9s infinite alternate 0.5s; }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg) scale(1); }
+      50% { transform: rotate(180deg) scale(1.1); }
+      100% { transform: rotate(360deg) scale(1); }
+    }
+    
+    @keyframes bounce {
+      from { transform: translateY(-5px); }
+      to { transform: translateY(5px); }
+    }
+    
+    /* Flash animation for button */
+    @keyframes buttonFlash {
+      0% { background-color: #4CAF50; }
+      50% { background-color: #ff9800; }
+      100% { background-color: #4CAF50; }
+    }
+    
+    .button-flash {
+      animation: buttonFlash 0.5s;
+    }
   </style>
 </head>
 <body>
   <h1>Controle do Bingo</h1>
   
   <div id="numeroAtual">Número atual: -</div>
+  
+  <!-- Globo animado de bingo -->
+  <div class="bingo-globe" id="bingoGlobe">
+    <div class="bingo-ball ball-1"></div>
+    <div class="bingo-ball ball-2"></div>
+    <div class="bingo-ball ball-3"></div>
+    <div class="bingo-ball ball-4"></div>
+  </div>
   
   <div class="botoes">
     <button id="sortear">Sortear Número</button>
@@ -92,7 +154,7 @@
   <script>
     // Configuração do Firebase (substitua pelos seus dados)
     const firebaseConfig = {
-      apiKey: "AIzaSyC-6Nr2b0MLv6mulDUQHruKiDWvmKEOwkc",
+     apiKey: "AIzaSyC-6Nr2b0MLv6mulDUQHruKiDWvmKEOwkc",
       authDomain: "bingo-app-familia.firebaseapp.com",
       databaseURL: "https://bingo-app-familia-default-rtdb.firebaseio.com",
       projectId: "bingo-app-familia",
@@ -109,6 +171,11 @@
     const resetarBtn = document.getElementById("resetar");
     const numeroAtualEl = document.getElementById("numeroAtual");
     const listaNumeros = document.getElementById("lista-numeros");
+    const bingoGlobe = document.getElementById("bingoGlobe");
+    
+    // Som de clique do botão
+    const clickSound = new Audio("https://soundbible.com/grab.php?id=1705&type=mp3");
+    clickSound.volume = 0.5;
     
     // Variáveis do jogo
     let numerosSorteados = [];
@@ -121,19 +188,39 @@
         return;
       }
       
-      let numero;
-      do {
-        numero = Math.floor(Math.random() * totalNumeros) + 1;
-      } while (numerosSorteados.includes(numero));
+      // Toca o som do clique
+      clickSound.play().catch(e => console.log("Não foi possível tocar o som"));
       
-      numerosSorteados.push(numero);
+      // Adiciona flash ao botão
+      sortearBtn.classList.add("button-flash");
+      setTimeout(() => {
+        sortearBtn.classList.remove("button-flash");
+      }, 500);
       
-      // Atualiza o Firebase
-      db.ref("bingo/numeroAtual").set(numero);
-      db.ref("bingo/numerosSorteados").set(numerosSorteados);
+      // Mostra e anima o globo
+      bingoGlobe.classList.add("active");
       
-      // Atualiza a interface
-      atualizarInterface();
+      // Tempo para "sortear" o número (para dar tempo da animação)
+      setTimeout(() => {
+        let numero;
+        do {
+          numero = Math.floor(Math.random() * totalNumeros) + 1;
+        } while (numerosSorteados.includes(numero));
+        
+        numerosSorteados.push(numero);
+        
+        // Atualiza o Firebase
+        db.ref("bingo/numeroAtual").set(numero);
+        db.ref("bingo/numerosSorteados").set(numerosSorteados);
+        
+        // Atualiza a interface
+        atualizarInterface();
+        
+        // Esconde o globo após a animação
+        setTimeout(() => {
+          bingoGlobe.classList.remove("active");
+        }, 500);
+      }, 1500);
     }
     
     // Função para resetar o jogo
