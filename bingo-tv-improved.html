@@ -11,14 +11,16 @@
       margin: 0;
       padding: 20px;
       overflow: hidden;
+      height: 100vh;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
     }
     .container {
-      max-width: 90%;
+      max-width: 95%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
     }
     h1 {
       font-size: 80px;
@@ -27,19 +29,19 @@
     h2 {
       color: #ddd;
       font-size: 32px;
-      margin-bottom: 0;
+      margin: 10px 0;
     }
     .numero-box {
       background: linear-gradient(135deg, #ff9900, #ff5500);
       border-radius: 20px;
-      padding: 30px;
-      margin: 30px 0;
+      padding: 20px;
+      margin: 10px 0;
       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
       position: relative;
       overflow: hidden;
     }
     #numero {
-      font-size: 180px;
+      font-size: 160px;
       font-weight: bold;
       line-height: 1;
       margin: 0;
@@ -47,33 +49,8 @@
       position: relative;
       z-index: 2;
     }
-    .historico {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 40px;
-      max-width: 80%;
-    }
-    .num-anterior {
-      background: rgba(255,255,255,0.1);
-      color: #ddd;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      font-weight: bold;
-    }
-    .placeholder {
-      font-size: 100px;
-      color: rgba(255,255,255,0.5);
-      margin: 40px 0;
-    }
     
-    /* Animações avançadas */
+    /* Animações para o número */
     @keyframes numeroPop {
       0% { transform: scale(0.5); opacity: 0; filter: blur(10px); }
       50% { transform: scale(1.2); opacity: 1; filter: blur(0); }
@@ -115,7 +92,72 @@
       animation: pulse 1.5s infinite;
     }
     
-    /* Confetes/partículas */
+    /* Grade de Bingo */
+    .grade-bingo {
+      display: grid;
+      grid-template-columns: repeat(16, 1fr);
+      gap: 5px;
+      margin-top: 20px;
+      flex-grow: 1;
+    }
+    
+    .celula {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 5px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 20px;
+      font-weight: bold;
+      aspect-ratio: 1 / 1;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+    
+    .celula-letra {
+      background: rgba(255, 120, 0, 0.5);
+      font-size: 28px;
+    }
+    
+    .celula-numero {
+      opacity: 0.35;
+    }
+    
+    .sorteado {
+      background: linear-gradient(145deg, #ff9900, #ff5500);
+      opacity: 1;
+      transform: scale(1.05);
+      box-shadow: 0 0 15px rgba(255, 165, 0, 0.7);
+      z-index: 1;
+    }
+    
+    .ultimo-sorteado {
+      animation: destacar 2s infinite;
+    }
+    
+    @keyframes destacar {
+      0% { transform: scale(1.05); }
+      50% { transform: scale(1.15); }
+      100% { transform: scale(1.05); }
+    }
+    
+    /* Responsividade */
+    @media (max-width: 1200px) {
+      .grade-bingo {
+        grid-template-columns: repeat(8, 1fr);
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .grade-bingo {
+        grid-template-columns: repeat(5, 1fr);
+      }
+      #numero {
+        font-size: 100px;
+      }
+    }
+    
+    /* Confetes */
     .confetti {
       position: absolute;
       width: 10px;
@@ -140,8 +182,8 @@
       <h1 id="numero">...</h1>
     </div>
     
-    <h2>Últimos números:</h2>
-    <div class="historico" id="historico"></div>
+    <h2>Cartela de Bingo</h2>
+    <div class="grade-bingo" id="gradeBingo"></div>
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -149,7 +191,7 @@
   <script>
     // Configuração do Firebase (substitua pelos seus dados)
     const firebaseConfig = {
-      apiKey: "AIzaSyC-6Nr2b0MLv6mulDUQHruKiDWvmKEOwkc",
+     apiKey: "AIzaSyC-6Nr2b0MLv6mulDUQHruKiDWvmKEOwkc",
       authDomain: "bingo-app-familia.firebaseapp.com",
       databaseURL: "https://bingo-app-familia-default-rtdb.firebaseio.com",
       projectId: "bingo-app-familia",
@@ -162,9 +204,9 @@
     const db = firebase.database();
 
     const numeroEl = document.getElementById("numero");
-    const historicoEl = document.getElementById("historico");
     const numeroBox = document.getElementById("numeroBox");
     const brilho = document.getElementById("brilho");
+    const gradeBingo = document.getElementById("gradeBingo");
 
     // Sons
     const alertSound = new Audio("https://soundbible.com/grab.php?id=2218&type=mp3");
@@ -172,6 +214,30 @@
     
     const tadaSound = new Audio("https://soundbible.com/grab.php?id=1003&type=mp3");
     tadaSound.volume = 0.5;
+    
+    // Criar a grade de bingo
+    function criarGradeBingo() {
+      // Letras da primeira coluna
+      const letras = ['B', 'I', 'N', 'G', 'O'];
+      
+      // Criar células para a primeira coluna (letras)
+      letras.forEach((letra, index) => {
+        const celulaLetra = document.createElement('div');
+        celulaLetra.className = 'celula celula-letra';
+        celulaLetra.textContent = letra;
+        gradeBingo.appendChild(celulaLetra);
+        
+        // Preencher o resto da linha com números
+        for (let i = 1; i <= 15; i++) {
+          const numero = i + (index * 15);
+          const celulaNr = document.createElement('div');
+          celulaNr.className = 'celula celula-numero';
+          celulaNr.textContent = numero;
+          celulaNr.id = `num-${numero}`;
+          gradeBingo.appendChild(celulaNr);
+        }
+      });
+    }
     
     // Função para criar confetes
     function criarConfetes() {
@@ -193,6 +259,24 @@
         setTimeout(() => {
           document.body.removeChild(confete);
         }, 3000);
+      }
+    }
+    
+    // Função para destacar um número sorteado na grade
+    function destacarNumeroSorteado(numero, isUltimo = false) {
+      const celula = document.getElementById(`num-${numero}`);
+      if (celula) {
+        celula.classList.add('sorteado');
+        
+        // Se for o último número sorteado, adiciona uma classe especial
+        if (isUltimo) {
+          // Remove a classe de último sorteado de todos os outros
+          document.querySelectorAll('.ultimo-sorteado').forEach(el => {
+            el.classList.remove('ultimo-sorteado');
+          });
+          
+          celula.classList.add('ultimo-sorteado');
+        }
       }
     }
 
@@ -223,6 +307,9 @@
           // Efeito de pulse
           numeroBox.classList.add("pulse");
           
+          // Destaca o número na grade
+          destacarNumeroSorteado(numero, true);
+          
           // Toca o som de celebração após um curto atraso
           setTimeout(() => {
             tadaSound.play().catch(e => console.log("Não foi possível tocar o som"));
@@ -238,24 +325,29 @@
     db.ref("bingo/numerosSorteados").on("value", (snapshot) => {
       const numeros = snapshot.val();
       
-      historicoEl.innerHTML = "";
-      
       if (numeros && numeros.length > 0) {
-        // Exibe apenas os últimos 10 números (exceto o atual)
-        const numerosAnteriores = [...numeros];
-        numerosAnteriores.pop(); // Remove o número atual
-        
-        // Pegamos os últimos 10 números (ou menos, se não tiver 10)
-        const ultimosNumeros = numerosAnteriores.slice(-10);
-        
-        // Adiciona os números na ordem inversa (mais recente primeiro)
-        ultimosNumeros.reverse().forEach(num => {
-          const numEl = document.createElement("div");
-          numEl.className = "num-anterior";
-          numEl.textContent = num;
-          historicoEl.appendChild(numEl);
+        // Destaca todos os números sorteados
+        numeros.forEach((num, index) => {
+          const isUltimo = index === numeros.length - 1;
+          destacarNumeroSorteado(num, isUltimo);
         });
       }
+    });
+    
+    // Inicializa a grade de bingo quando a página carregar
+    window.addEventListener('load', () => {
+      criarGradeBingo();
+      
+      // Sincroniza com o estado atual
+      db.ref("bingo/numerosSorteados").once("value", (snapshot) => {
+        const numeros = snapshot.val();
+        if (numeros && numeros.length > 0) {
+          numeros.forEach((num, index) => {
+            const isUltimo = index === numeros.length - 1;
+            destacarNumeroSorteado(num, isUltimo);
+          });
+        }
+      });
     });
   </script>
 </body>
