@@ -35,6 +35,8 @@
       padding: 30px;
       margin: 30px 0;
       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      position: relative;
+      overflow: hidden;
     }
     #numero {
       font-size: 180px;
@@ -42,6 +44,8 @@
       line-height: 1;
       margin: 0;
       color: white;
+      position: relative;
+      z-index: 2;
     }
     .historico {
       display: flex;
@@ -68,13 +72,62 @@
       color: rgba(255,255,255,0.5);
       margin: 40px 0;
     }
-    @keyframes appear {
-      0% { transform: scale(0.5); opacity: 0; }
-      50% { transform: scale(1.2); }
-      100% { transform: scale(1); opacity: 1; }
+    
+    /* Animações avançadas */
+    @keyframes numeroPop {
+      0% { transform: scale(0.5); opacity: 0; filter: blur(10px); }
+      50% { transform: scale(1.2); opacity: 1; filter: blur(0); }
+      70% { transform: scale(0.95); }
+      100% { transform: scale(1); }
     }
-    .animate {
-      animation: appear 1s forwards;
+    
+    @keyframes light {
+      0% { background-position: -100% 0; }
+      100% { background-position: 200% 0; }
+    }
+    
+    @keyframes pulse {
+      0% { box-shadow: 0 0 30px rgba(255, 255, 0, 0.5); }
+      50% { box-shadow: 0 0 50px rgba(255, 150, 0, 0.8); }
+      100% { box-shadow: 0 0 30px rgba(255, 255, 0, 0.5); }
+    }
+    
+    .animate-numero {
+      animation: numeroPop 1.5s forwards;
+    }
+    
+    .brilho {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, 
+        rgba(255,255,255,0) 0%, 
+        rgba(255,255,255,0.4) 50%, 
+        rgba(255,255,255,0) 100%);
+      background-size: 200% 100%;
+      z-index: 1;
+      animation: light 1.5s ease-in-out;
+    }
+    
+    .pulse {
+      animation: pulse 1.5s infinite;
+    }
+    
+    /* Confetes/partículas */
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background-color: #f00;
+      opacity: 0;
+      z-index: -1;
+    }
+    
+    @keyframes confettiFall {
+      0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(500px) rotate(360deg); opacity: 0; }
     }
   </style>
 </head>
@@ -82,8 +135,9 @@
   <div class="container">
     <h2>Próximo número sorteado:</h2>
     
-    <div class="numero-box">
-      <h1 id="numero" class="animate">...</h1>
+    <div class="numero-box" id="numeroBox">
+      <div class="brilho" id="brilho" style="display: none;"></div>
+      <h1 id="numero">...</h1>
     </div>
     
     <h2>Últimos números:</h2>
@@ -109,23 +163,72 @@
 
     const numeroEl = document.getElementById("numero");
     const historicoEl = document.getElementById("historico");
+    const numeroBox = document.getElementById("numeroBox");
+    const brilho = document.getElementById("brilho");
 
-    // Som de alerta quando um novo número é sorteado
+    // Sons
     const alertSound = new Audio("https://soundbible.com/grab.php?id=2218&type=mp3");
+    alertSound.volume = 0.7;
+    
+    const tadaSound = new Audio("https://soundbible.com/grab.php?id=1003&type=mp3");
+    tadaSound.volume = 0.5;
+    
+    // Função para criar confetes
+    function criarConfetes() {
+      const cores = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+      
+      for (let i = 0; i < 50; i++) {
+        const confete = document.createElement('div');
+        confete.className = 'confetti';
+        confete.style.backgroundColor = cores[Math.floor(Math.random() * cores.length)];
+        confete.style.left = Math.random() * 100 + '%';
+        confete.style.width = Math.random() * 10 + 5 + 'px';
+        confete.style.height = Math.random() * 10 + 5 + 'px';
+        confete.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+        confete.style.animation = `confettiFall ${Math.random() * 2 + 1}s forwards`;
+        
+        document.body.appendChild(confete);
+        
+        // Remove o confete após a animação terminar
+        setTimeout(() => {
+          document.body.removeChild(confete);
+        }, 3000);
+      }
+    }
 
     // Escuta atualizações no número sorteado
     db.ref("bingo/numeroAtual").on("value", (snapshot) => {
       const numero = snapshot.val();
       
       if (numero !== null) {
-        // Reiniciar a animação
-        numeroEl.classList.remove("animate");
+        // Toca o alerta
+        alertSound.play().catch(e => console.log("Não foi possível tocar o som"));
+        
+        // Reset das animações
+        numeroEl.classList.remove("animate-numero");
+        brilho.style.display = "none";
+        numeroBox.classList.remove("pulse");
+        
+        // Force reflow para reiniciar animações
+        void numeroEl.offsetWidth;
+        
+        // Efeito gradual de aparecimento do número
         setTimeout(() => {
           numeroEl.textContent = numero;
-          numeroEl.classList.add("animate");
-          // Toca o som
-          alertSound.play().catch(e => console.log("Não foi possível tocar o som"));
-        }, 10);
+          numeroEl.classList.add("animate-numero");
+          
+          // Efeito de brilho
+          brilho.style.display = "block";
+          
+          // Efeito de pulse
+          numeroBox.classList.add("pulse");
+          
+          // Toca o som de celebração após um curto atraso
+          setTimeout(() => {
+            tadaSound.play().catch(e => console.log("Não foi possível tocar o som"));
+            criarConfetes();
+          }, 500);
+        }, 100);
       } else {
         numeroEl.textContent = "...";
       }
