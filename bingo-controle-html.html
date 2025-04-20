@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Controle do Bingo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f0f0f0;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 30px;
+    }
+    .botoes {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      max-width: 300px;
+      margin: 0 auto;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 15px 20px;
+      font-size: 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    button:active {
+      transform: scale(0.98);
+    }
+    button#resetar {
+      background: #f44336;
+    }
+    button#resetar:hover {
+      background: #d32f2f;
+    }
+    #numeroAtual {
+      font-size: 24px;
+      margin: 20px 0;
+      font-weight: bold;
+    }
+    #numerosSorteados {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 20px;
+      text-align: left;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .numero-sorteado {
+      display: inline-block;
+      background: #f1f1f1;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      line-height: 40px;
+      text-align: center;
+      margin: 5px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Controle do Bingo</h1>
+  
+  <div id="numeroAtual">Número atual: -</div>
+  
+  <div class="botoes">
+    <button id="sortear">Sortear Número</button>
+    <button id="resetar">Resetar Jogo</button>
+  </div>
+  
+  <div id="numerosSorteados">
+    <h3>Números Sorteados:</h3>
+    <div id="lista-numeros"></div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script>
+    // Configuração do Firebase (substitua pelos seus dados)
+    const firebaseConfig = {
+      apiKey: "AIzaSyC-6Nr2b0MLv6mulDUQHruKiDWvmKEOwkc",
+      authDomain: "bingo-app-familia.firebaseapp.com",
+      databaseURL: "https://bingo-app-familia-default-rtdb.firebaseio.com",
+      projectId: "bingo-app-familia",
+      storageBucket: "bingo-app-familia.firebasestorage.app",
+      messagingSenderId: "696785879287",
+      appId: "1:696785879287:web:12a1628f6926f5c300d3f2"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    
+    // Referências aos elementos HTML
+    const sortearBtn = document.getElementById("sortear");
+    const resetarBtn = document.getElementById("resetar");
+    const numeroAtualEl = document.getElementById("numeroAtual");
+    const listaNumeros = document.getElementById("lista-numeros");
+    
+    // Variáveis do jogo
+    let numerosSorteados = [];
+    const totalNumeros = 75; // Números do bingo tradicional (1-75)
+    
+    // Função para sortear um número
+    function sortearNumero() {
+      if (numerosSorteados.length >= totalNumeros) {
+        alert("Todos os números já foram sorteados!");
+        return;
+      }
+      
+      let numero;
+      do {
+        numero = Math.floor(Math.random() * totalNumeros) + 1;
+      } while (numerosSorteados.includes(numero));
+      
+      numerosSorteados.push(numero);
+      
+      // Atualiza o Firebase
+      db.ref("bingo/numeroAtual").set(numero);
+      db.ref("bingo/numerosSorteados").set(numerosSorteados);
+      
+      // Atualiza a interface
+      atualizarInterface();
+    }
+    
+    // Função para resetar o jogo
+    function resetarJogo() {
+      if (confirm("Tem certeza que deseja reiniciar o jogo?")) {
+        numerosSorteados = [];
+        
+        // Atualiza o Firebase
+        db.ref("bingo/numeroAtual").set(null);
+        db.ref("bingo/numerosSorteados").set([]);
+        
+        // Atualiza a interface
+        numeroAtualEl.textContent = "Número atual: -";
+        listaNumeros.innerHTML = "";
+      }
+    }
+    
+    // Função para atualizar a interface
+    function atualizarInterface() {
+      if (numerosSorteados.length > 0) {
+        const ultimoNumero = numerosSorteados[numerosSorteados.length - 1];
+        numeroAtualEl.textContent = `Número atual: ${ultimoNumero}`;
+      } else {
+        numeroAtualEl.textContent = "Número atual: -";
+      }
+      
+      // Atualiza a lista de números sorteados
+      listaNumeros.innerHTML = "";
+      numerosSorteados.forEach(num => {
+        const numEl = document.createElement("div");
+        numEl.className = "numero-sorteado";
+        numEl.textContent = num;
+        listaNumeros.appendChild(numEl);
+      });
+    }
+    
+    // Escuta os eventos de clique nos botões
+    sortearBtn.addEventListener("click", sortearNumero);
+    resetarBtn.addEventListener("click", resetarJogo);
+    
+    // Sincroniza com o Firebase quando a página carrega
+    db.ref("bingo/numerosSorteados").once("value", (snapshot) => {
+      const dados = snapshot.val();
+      if (dados !== null) {
+        numerosSorteados = dados;
+        atualizarInterface();
+      }
+    });
+  </script>
+</body>
+</html>
