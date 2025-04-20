@@ -201,7 +201,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <script>
-    // Configuração do Firebase (substitua pelos seus dados)
+    // Configuração do Firebase (mantendo os dados de configuração do controle)
     const firebaseConfig = {
       apiKey: "AIzaSyC-6Nr2b0MLv6mulDUQHruKiDWvmKEOwkc",
       authDomain: "bingo-app-familia.firebaseapp.com",
@@ -229,6 +229,9 @@
     
     // Criar a grade de bingo
     function criarGradeBingo() {
+      // Limpa a grade existente
+      gradeBingo.innerHTML = '';
+      
       // Letras da primeira coluna
       const letras = ['B', 'I', 'N', 'G', 'O'];
       
@@ -251,6 +254,19 @@
       });
     }
     
+    // Função para limpar todos os números destacados
+    function limparNumerosSorteados() {
+      document.querySelectorAll('.sorteado').forEach(el => {
+        el.classList.remove('sorteado');
+        el.classList.remove('ultimo-sorteado');
+      });
+      
+      // Reset do número exibido
+      numeroEl.textContent = "...";
+      brilho.style.display = "none";
+      numeroBox.classList.remove("pulse");
+    }
+    
     // Função para criar confetes
     function criarConfetes() {
       const cores = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
@@ -269,7 +285,9 @@
         
         // Remove o confete após a animação terminar
         setTimeout(() => {
-          document.body.removeChild(confete);
+          if (document.body.contains(confete)) {
+            document.body.removeChild(confete);
+          }
         }, 3000);
       }
     }
@@ -329,7 +347,9 @@
           }, 500);
         }, 100);
       } else {
+        // O jogo foi resetado
         numeroEl.textContent = "...";
+        limparNumerosSorteados();
       }
     });
     
@@ -337,12 +357,18 @@
     db.ref("bingo/numerosSorteados").on("value", (snapshot) => {
       const numeros = snapshot.val();
       
+      // Limpa todos os números destacados primeiro
+      limparNumerosSorteados();
+      
       if (numeros && numeros.length > 0) {
         // Destaca todos os números sorteados
         numeros.forEach((num, index) => {
           const isUltimo = index === numeros.length - 1;
           destacarNumeroSorteado(num, isUltimo);
         });
+      } else {
+        // Se não houver números sorteados, limpa a exibição
+        limparNumerosSorteados();
       }
     });
     
