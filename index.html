@@ -1,54 +1,30 @@
-
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Bingo TV</title>
+  <title>Bingo App</title>
   <style>
     body {
       font-family: sans-serif;
-      background: #f9f9f9;
       text-align: center;
       margin-top: 50px;
     }
-    h1 {
-      font-size: 100px;
-      color: #333;
-    }
-    h2 {
-      color: #777;
+    .botao {
+      display: block;
+      background: #4CAF50;
+      color: white;
+      padding: 20px;
+      margin: 20px auto;
+      max-width: 300px;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 18px;
     }
   </style>
 </head>
 <body>
-  <h2>Próximo número:</h2>
-  <h1 id="numero">...</h1>
-
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-  <script>
-    // Configuração do Firebase (substitua pelos seus dados)
-    const firebaseConfig = {
-      apiKey: "SUA_API_KEY",
-      authDomain: "SEU_DOMINIO.firebaseapp.com",
-      databaseURL: "https://SEU_DOMINIO.firebaseio.com",
-      projectId: "SEU_PROJETO",
-      storageBucket: "SEU_BUCKET.appspot.com",
-      messagingSenderId: "SENDER_ID",
-      appId: "SEU_APP_ID"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    const numeroEl = document.getElementById("numero");
-
-    // Escuta atualizações no número sorteado
-    db.ref("bingo/numeroAtual").on("value", (snapshot) => {
-      const numero = snapshot.val();
-      if (numero !== null) {
-        numeroEl.textContent = numero;
-      }
-    });
-  </script>
+  <h1>Bingo App</h1>
+  
+  <a class="botao" href="bingo-tv-improved.html">Abrir Tela da TV</a>
+  <a class="botao" href="bingo-controle.html">Abrir Controle</a>
 </body>
 </html>
