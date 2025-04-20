@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bingo TV</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #1a1a1a;
+      color: white;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      max-width: 90%;
+    }
+    h1 {
+      font-size: 80px;
+      margin: 10px 0;
+    }
+    h2 {
+      color: #ddd;
+      font-size: 32px;
+      margin-bottom: 0;
+    }
+    .numero-box {
+      background: linear-gradient(135deg, #ff9900, #ff5500);
+      border-radius: 20px;
+      padding: 30px;
+      margin: 30px 0;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    #numero {
+      font-size: 180px;
+      font-weight: bold;
+      line-height: 1;
+      margin: 0;
+      color: white;
+    }
+    .historico {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 40px;
+      max-width: 80%;
+    }
+    .num-anterior {
+      background: rgba(255,255,255,0.1);
+      color: #ddd;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .placeholder {
+      font-size: 100px;
+      color: rgba(255,255,255,0.5);
+      margin: 40px 0;
+    }
+    @keyframes appear {
+      0% { transform: scale(0.5); opacity: 0; }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate {
+      animation: appear 1s forwards;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Próximo número sorteado:</h2>
+    
+    <div class="numero-box">
+      <h1 id="numero" class="animate">...</h1>
+    </div>
+    
+    <h2>Últimos números:</h2>
+    <div class="historico" id="historico"></div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script>
+    // Configuração do Firebase (substitua pelos seus dados)
+    const firebaseConfig = {
+      apiKey: "AIzaSyC-6Nr2b0MLv6mulDUQHruKiDWvmKEOwkc",
+      authDomain: "bingo-app-familia.firebaseapp.com",
+      databaseURL: "https://bingo-app-familia-default-rtdb.firebaseio.com",
+      projectId: "bingo-app-familia",
+      storageBucket: "bingo-app-familia.firebasestorage.app",
+      messagingSenderId: "696785879287",
+      appId: "1:696785879287:web:12a1628f6926f5c300d3f2"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const numeroEl = document.getElementById("numero");
+    const historicoEl = document.getElementById("historico");
+
+    // Som de alerta quando um novo número é sorteado
+    const alertSound = new Audio("https://soundbible.com/grab.php?id=2218&type=mp3");
+
+    // Escuta atualizações no número sorteado
+    db.ref("bingo/numeroAtual").on("value", (snapshot) => {
+      const numero = snapshot.val();
+      
+      if (numero !== null) {
+        // Reiniciar a animação
+        numeroEl.classList.remove("animate");
+        setTimeout(() => {
+          numeroEl.textContent = numero;
+          numeroEl.classList.add("animate");
+          // Toca o som
+          alertSound.play().catch(e => console.log("Não foi possível tocar o som"));
+        }, 10);
+      } else {
+        numeroEl.textContent = "...";
+      }
+    });
+    
+    // Escuta atualizações na lista de números sorteados
+    db.ref("bingo/numerosSorteados").on("value", (snapshot) => {
+      const numeros = snapshot.val();
+      
+      historicoEl.innerHTML = "";
+      
+      if (numeros && numeros.length > 0) {
+        // Exibe apenas os últimos 10 números (exceto o atual)
+        const numerosAnteriores = [...numeros];
+        numerosAnteriores.pop(); // Remove o número atual
+        
+        // Pegamos os últimos 10 números (ou menos, se não tiver 10)
+        const ultimosNumeros = numerosAnteriores.slice(-10);
+        
+        // Adiciona os números na ordem inversa (mais recente primeiro)
+        ultimosNumeros.reverse().forEach(num => {
+          const numEl = document.createElement("div");
+          numEl.className = "num-anterior";
+          numEl.textContent = num;
+          historicoEl.appendChild(numEl);
+        });
+      }
+    });
+  </script>
+</body>
+</html>
