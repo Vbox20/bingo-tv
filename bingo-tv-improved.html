@@ -21,6 +21,7 @@
       display: flex;
       flex-direction: column;
       height: 100%;
+      justify-content: space-between;
     }
     h1 {
       font-size: 80px;
@@ -93,12 +94,18 @@
     }
     
     /* Grade de Bingo */
+    .grade-bingo-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+      margin-bottom: 40px; /* Afasta da borda inferior */
+    }
+    
     .grade-bingo {
       display: grid;
       grid-template-columns: repeat(16, 1fr);
       gap: 5px;
-      margin-top: 20px;
-      flex-grow: 1;
+      flex-grow: 0;
     }
     
     .celula {
@@ -175,15 +182,20 @@
 </head>
 <body>
   <div class="container">
-    <h2>Próximo número sorteado:</h2>
-    
-    <div class="numero-box" id="numeroBox">
-      <div class="brilho" id="brilho" style="display: none;"></div>
-      <h1 id="numero">...</h1>
+    <div class="header-section">
+      <h2>Último número sorteado:</h2>
+      
+      <div class="numero-box" id="numeroBox">
+        <div class="brilho" id="brilho" style="display: none;"></div>
+        <h1 id="numero">...</h1>
+      </div>
+      
+      <h2>Cartela de Bingo</h2>
     </div>
     
-    <h2>Cartela de Bingo</h2>
-    <div class="grade-bingo" id="gradeBingo"></div>
+    <div class="grade-bingo-container">
+      <div class="grade-bingo" id="gradeBingo"></div>
+    </div>
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -191,7 +203,7 @@
   <script>
     // Configuração do Firebase (substitua pelos seus dados)
     const firebaseConfig = {
-     apiKey: "AIzaSyC-6Nr2b0MLv6mulDUQHruKiDWvmKEOwkc",
+      apiKey: "AIzaSyC-6Nr2b0MLv6mulDUQHruKiDWvmKEOwkc",
       authDomain: "bingo-app-familia.firebaseapp.com",
       databaseURL: "https://bingo-app-familia-default-rtdb.firebaseio.com",
       projectId: "bingo-app-familia",
