@@ -2,6 +2,7 @@
 <html>
 <head>
   <title>Bingo TV</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       font-family: sans-serif;
@@ -99,6 +100,8 @@
       justify-content: center;
       margin-top: 20px;
       margin-bottom: 40px; /* Afasta da borda inferior */
+      overflow-y: auto;
+      max-height: 60vh;
     }
     
     .grade-bingo {
@@ -148,10 +151,18 @@
       100% { transform: scale(1.05); }
     }
     
-    /* Responsividade */
+    /* Responsividade para telas menores e celulares */
     @media (max-width: 1200px) {
       .grade-bingo {
         grid-template-columns: repeat(8, 1fr);
+      }
+      
+      h2 {
+        font-size: 28px;
+      }
+      
+      #numero {
+        font-size: 120px;
       }
     }
     
@@ -159,8 +170,52 @@
       .grade-bingo {
         grid-template-columns: repeat(5, 1fr);
       }
+      
       #numero {
         font-size: 100px;
+      }
+      
+      h2 {
+        font-size: 24px;
+      }
+      
+      .grade-bingo-container {
+        max-height: 50vh;
+      }
+    }
+    
+    /* Layout vertical para celulares */
+    @media (max-width: 480px) {
+      .grade-bingo {
+        /* Layout vertical para celular */
+        grid-template-columns: repeat(6, 1fr);
+      }
+      
+      .grade-bingo-container {
+        margin-bottom: 20px;
+        max-height: 45vh;
+        overflow-y: auto;
+      }
+      
+      #numero {
+        font-size: 80px;
+      }
+      
+      h2 {
+        font-size: 20px;
+        margin: 5px 0;
+      }
+      
+      .celula {
+        font-size: 16px;
+      }
+      
+      .celula-letra {
+        font-size: 22px;
+      }
+      
+      .numero-box {
+        padding: 10px;
       }
     }
     
@@ -201,7 +256,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <script>
-    // Configuração do Firebase (mantendo os dados de configuração do controle)
+    // Configuração do Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyC-6Nr2b0MLv6mulDUQHruKiDWvmKEOwkc",
       authDomain: "bingo-app-familia.firebaseapp.com",
@@ -227,31 +282,62 @@
     const tadaSound = new Audio("https://soundbible.com/grab.php?id=1003&type=mp3");
     tadaSound.volume = 0.5;
     
+    // Verifica se o dispositivo é mobile para alternar layout
+    function isMobileDevice() {
+      return window.innerWidth <= 480;
+    }
+    
     // Criar a grade de bingo
     function criarGradeBingo() {
       // Limpa a grade existente
       gradeBingo.innerHTML = '';
       
-      // Letras da primeira coluna
+      // Letras do bingo
       const letras = ['B', 'I', 'N', 'G', 'O'];
       
-      // Criar células para a primeira coluna (letras)
-      letras.forEach((letra, index) => {
-        const celulaLetra = document.createElement('div');
-        celulaLetra.className = 'celula celula-letra';
-        celulaLetra.textContent = letra;
-        gradeBingo.appendChild(celulaLetra);
+      if (isMobileDevice()) {
+        // Layout vertical para celular
+        // Colocamos todas as letras em uma linha no topo
+        letras.forEach(letra => {
+          const celulaLetra = document.createElement('div');
+          celulaLetra.className = 'celula celula-letra';
+          celulaLetra.textContent = letra;
+          gradeBingo.appendChild(celulaLetra);
+        });
         
-        // Preencher o resto da linha com números
-        for (let i = 1; i <= 15; i++) {
-          const numero = i + (index * 15);
+        // Uma célula vazia para alinhar a grade
+        const celulaPadding = document.createElement('div');
+        celulaPadding.className = 'celula';
+        celulaPadding.style.background = 'transparent';
+        gradeBingo.appendChild(celulaPadding);
+        
+        // Agora adicionamos os números em colunas
+        for (let i = 1; i <= 75; i++) {
           const celulaNr = document.createElement('div');
           celulaNr.className = 'celula celula-numero';
-          celulaNr.textContent = numero;
-          celulaNr.id = `num-${numero}`;
+          celulaNr.textContent = i;
+          celulaNr.id = `num-${i}`;
           gradeBingo.appendChild(celulaNr);
         }
-      });
+      } else {
+        // Layout horizontal para desktop/tablet
+        letras.forEach((letra, index) => {
+          const celulaLetra = document.createElement('div');
+          celulaLetra.className = 'celula celula-letra';
+          celulaLetra.textContent = letra;
+          gradeBingo.appendChild(celulaLetra);
+          
+          // Preencher o resto da linha com números
+          for (let i = 1; i <= 15; i++) {
+            const numero = i + (index * 15);
+            const celulaNr = document.createElement('div');
+            celulaNr.className = 'celula celula-numero';
+            celulaNr.textContent = numero;
+            celulaNr.id = `num-${numero}`;
+            gradeBingo.appendChild(celulaNr);
+          }
+        });
+      }
     }
     
     // Função para limpar todos os números destacados
@@ -306,6 +392,13 @@
           });
           
           celula.classList.add('ultimo-sorteado');
+          
+          // Scroll para o elemento em dispositivos móveis
+          if (isMobileDevice()) {
+            setTimeout(() => {
+              celula.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 300);
+          }
         }
       }
     }
@@ -370,6 +463,29 @@
         // Se não houver números sorteados, limpa a exibição
         limparNumerosSorteados();
       }
+    });
+    
+    // Função para reconstruir a grade quando o tamanho da janela muda
+    function handleResize() {
+      criarGradeBingo();
+      
+      // Reaplica os números sorteados
+      db.ref("bingo/numerosSorteados").once("value", (snapshot) => {
+        const numeros = snapshot.val();
+        if (numeros && numeros.length > 0) {
+          numeros.forEach((num, index) => {
+            const isUltimo = index === numeros.length - 1;
+            destacarNumeroSorteado(num, isUltimo);
+          });
+        }
+      });
+    }
+    
+    // Listener para mudanças no tamanho da tela
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(handleResize, 300);
     });
     
     // Inicializa a grade de bingo quando a página carregar
