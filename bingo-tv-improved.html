@@ -10,30 +10,32 @@
       color: white;
       text-align: center;
       margin: 0;
-      padding: 20px;
-      overflow: hidden;
+      padding: 10px;
       height: 100vh;
       display: flex;
       flex-direction: column;
+      box-sizing: border-box;
     }
+    
     .container {
-      max-width: 95%;
+      width: 100%;
       margin: 0 auto;
       display: flex;
       flex-direction: column;
-      height: 100%;
-      /* Changed from space-between to flex-start to remove extra space */
-      justify-content: flex-start;
+      flex: 1;
     }
+    
     h1 {
       font-size: 80px;
       margin: 10px 0;
     }
+    
     h2 {
       color: #ddd;
       font-size: 32px;
       margin: 10px 0;
     }
+    
     .numero-box {
       background: linear-gradient(135deg, #ff9900, #ff5500);
       border-radius: 20px;
@@ -43,6 +45,7 @@
       position: relative;
       overflow: hidden;
     }
+    
     #numero {
       font-size: 160px;
       font-weight: bold;
@@ -99,20 +102,17 @@
     .grade-bingo-container {
       display: flex;
       justify-content: center;
-      /* Reduced top margin to minimize space */
       margin-top: 10px;
-      /* Reduced bottom margin */
-      margin-bottom: 20px;
+      flex: 1;
       overflow-y: auto;
-      /* Increased max height to allow more space for the table */
-      max-height: 70vh;
+      min-height: 0; /* Important for flex overflow */
     }
     
     .grade-bingo {
       display: grid;
       grid-template-columns: repeat(16, 1fr);
       gap: 5px;
-      flex-grow: 0;
+      align-content: start;
     }
     
     .celula {
@@ -157,8 +157,7 @@
     
     /* Header section with improved spacing */
     .header-section {
-      /* Added to keep header compact */
-      margin-bottom: 5px;
+      flex-shrink: 0;
     }
     
     /* Responsividade para telas menores e celulares */
@@ -188,35 +187,26 @@
       h2 {
         font-size: 24px;
       }
-      
-      .grade-bingo-container {
-        /* Increased max height for better display */
-        max-height: 60vh;
-      }
     }
     
     /* Layout vertical para celulares */
     @media (max-width: 480px) {
-      .grade-bingo {
-        /* Layout vertical para celular */
-        grid-template-columns: repeat(6, 1fr);
+      body {
+        padding: 5px;
+        overflow: hidden;
       }
       
-      .grade-bingo-container {
-        margin-bottom: 10px;
-        /* Increased max height for mobile */
-        max-height: 55vh;
-        overflow-y: auto;
+      .grade-bingo {
+        grid-template-columns: repeat(5, 1fr);
       }
       
       #numero {
-        font-size: 80px;
+        font-size: 70px;
       }
       
       h2 {
-        font-size: 20px;
-        /* Reduced margin to save space */
-        margin: 3px 0;
+        font-size: 18px;
+        margin: 5px 0;
       }
       
       .celula {
@@ -224,11 +214,12 @@
       }
       
       .celula-letra {
-        font-size: 22px;
+        font-size: 20px;
       }
       
       .numero-box {
         padding: 10px;
+        margin: 5px 0;
       }
     }
     
@@ -266,6 +257,61 @@
     </div>
   </div>
 
-  <!-- Script section remains unchanged -->
-</body>
-</html>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script>
+    // Configuração do Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyC-6Nr2b0MLv6mulDUQHruKiDWvmKEOwkc",
+      authDomain: "bingo-app-familia.firebaseapp.com",
+      databaseURL: "https://bingo-app-familia-default-rtdb.firebaseio.com",
+      projectId: "bingo-app-familia",
+      storageBucket: "bingo-app-familia.firebasestorage.app",
+      messagingSenderId: "696785879287",
+      appId: "1:696785879287:web:12a1628f6926f5c300d3f2"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const numeroEl = document.getElementById("numero");
+    const numeroBox = document.getElementById("numeroBox");
+    const brilho = document.getElementById("brilho");
+    const gradeBingo = document.getElementById("gradeBingo");
+
+    // Sons
+    const alertSound = new Audio("https://soundbible.com/grab.php?id=2218&type=mp3");
+    alertSound.volume = 0.7;
+    
+    const tadaSound = new Audio("https://soundbible.com/grab.php?id=1003&type=mp3");
+    tadaSound.volume = 0.5;
+    
+    // Verifica se o dispositivo é mobile para alternar layout
+    function isMobileDevice() {
+      return window.innerWidth <= 480;
+    }
+    
+    // Criar a grade de bingo
+    function criarGradeBingo() {
+      // Limpa a grade existente
+      gradeBingo.innerHTML = '';
+      
+      // Letras do bingo
+      const letras = ['B', 'I', 'N', 'G', 'O'];
+      
+      if (isMobileDevice()) {
+        // Layout vertical para celular
+        // Primeiro adiciona as letras do BINGO
+        letras.forEach(letra => {
+          const celulaLetra = document.createElement('div');
+          celulaLetra.className = 'celula celula-letra';
+          celulaLetra.textContent = letra;
+          gradeBingo.appendChild(celulaLetra);
+        });
+        
+        // Agora adicionamos os números em colunas alinhadas com as letras
+        for (let i = 1; i <= 75; i++) {
+          const coluna = Math.ceil(i / 15);
+          const celulaIndex = ((i - 1) % 15);
+          
+          // Se for o primeiro número de uma
