@@ -10,32 +10,29 @@
       color: white;
       text-align: center;
       margin: 0;
-      padding: 10px;
+      padding: 20px;
+      overflow: hidden;
       height: 100vh;
       display: flex;
       flex-direction: column;
-      box-sizing: border-box;
     }
-    
     .container {
-      width: 100%;
+      max-width: 95%;
       margin: 0 auto;
       display: flex;
       flex-direction: column;
-      flex: 1;
+      height: 100%;
+      justify-content: space-between;
     }
-    
     h1 {
       font-size: 80px;
       margin: 10px 0;
     }
-    
     h2 {
       color: #ddd;
       font-size: 32px;
       margin: 10px 0;
     }
-    
     .numero-box {
       background: linear-gradient(135deg, #ff9900, #ff5500);
       border-radius: 20px;
@@ -45,7 +42,6 @@
       position: relative;
       overflow: hidden;
     }
-    
     #numero {
       font-size: 160px;
       font-weight: bold;
@@ -102,17 +98,17 @@
     .grade-bingo-container {
       display: flex;
       justify-content: center;
-      margin-top: 10px;
-      flex: 1;
+      margin-top: 20px;
+      margin-bottom: 40px; /* Afasta da borda inferior */
       overflow-y: auto;
-      min-height: 0; /* Important for flex overflow */
+      max-height: 60vh;
     }
     
     .grade-bingo {
       display: grid;
       grid-template-columns: repeat(16, 1fr);
       gap: 5px;
-      align-content: start;
+      flex-grow: 0;
     }
     
     .celula {
@@ -155,11 +151,6 @@
       100% { transform: scale(1.05); }
     }
     
-    /* Header section with improved spacing */
-    .header-section {
-      flex-shrink: 0;
-    }
-    
     /* Responsividade para telas menores e celulares */
     @media (max-width: 1200px) {
       .grade-bingo {
@@ -187,25 +178,31 @@
       h2 {
         font-size: 24px;
       }
+      
+      .grade-bingo-container {
+        max-height: 50vh;
+      }
     }
     
     /* Layout vertical para celulares */
     @media (max-width: 480px) {
-      body {
-        padding: 5px;
-        overflow: hidden;
+      .grade-bingo {
+        /* Layout vertical para celular */
+        grid-template-columns: repeat(6, 1fr);
       }
       
-      .grade-bingo {
-        grid-template-columns: repeat(5, 1fr);
+      .grade-bingo-container {
+        margin-bottom: 20px;
+        max-height: 45vh;
+        overflow-y: auto;
       }
       
       #numero {
-        font-size: 70px;
+        font-size: 80px;
       }
       
       h2 {
-        font-size: 18px;
+        font-size: 20px;
         margin: 5px 0;
       }
       
@@ -214,12 +211,11 @@
       }
       
       .celula-letra {
-        font-size: 20px;
+        font-size: 22px;
       }
       
       .numero-box {
         padding: 10px;
-        margin: 5px 0;
       }
     }
     
@@ -301,7 +297,7 @@
       
       if (isMobileDevice()) {
         // Layout vertical para celular
-        // Primeiro adiciona as letras do BINGO
+        // Colocamos todas as letras em uma linha no topo
         letras.forEach(letra => {
           const celulaLetra = document.createElement('div');
           celulaLetra.className = 'celula celula-letra';
@@ -309,9 +305,204 @@
           gradeBingo.appendChild(celulaLetra);
         });
         
-        // Agora adicionamos os números em colunas alinhadas com as letras
+        // Uma célula vazia para alinhar a grade
+        const celulaPadding = document.createElement('div');
+        celulaPadding.className = 'celula';
+        celulaPadding.style.background = 'transparent';
+        gradeBingo.appendChild(celulaPadding);
+        
+        // Agora adicionamos os números em colunas
         for (let i = 1; i <= 75; i++) {
-          const coluna = Math.ceil(i / 15);
-          const celulaIndex = ((i - 1) % 15);
+          const celulaNr = document.createElement('div');
+          celulaNr.className = 'celula celula-numero';
+          celulaNr.textContent = i;
+          celulaNr.id = `num-${i}`;
+          gradeBingo.appendChild(celulaNr);
+        }
+      } else {
+        // Layout horizontal para desktop/tablet
+        letras.forEach((letra, index) => {
+          const celulaLetra = document.createElement('div');
+          celulaLetra.className = 'celula celula-letra';
+          celulaLetra.textContent = letra;
+          gradeBingo.appendChild(celulaLetra);
           
-          // Se for o primeiro número de uma
+          // Preencher o resto da linha com números
+          for (let i = 1; i <= 15; i++) {
+            const numero = i + (index * 15);
+            const celulaNr = document.createElement('div');
+            celulaNr.className = 'celula celula-numero';
+            celulaNr.textContent = numero;
+            celulaNr.id = `num-${numero}`;
+            gradeBingo.appendChild(celulaNr);
+          }
+        });
+      }
+    }
+    
+    // Função para limpar todos os números destacados
+    function limparNumerosSorteados() {
+      document.querySelectorAll('.sorteado').forEach(el => {
+        el.classList.remove('sorteado');
+        el.classList.remove('ultimo-sorteado');
+      });
+      
+      // Reset do número exibido
+      numeroEl.textContent = "...";
+      brilho.style.display = "none";
+      numeroBox.classList.remove("pulse");
+    }
+    
+    // Função para criar confetes
+    function criarConfetes() {
+      const cores = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+      
+      for (let i = 0; i < 50; i++) {
+        const confete = document.createElement('div');
+        confete.className = 'confetti';
+        confete.style.backgroundColor = cores[Math.floor(Math.random() * cores.length)];
+        confete.style.left = Math.random() * 100 + '%';
+        confete.style.width = Math.random() * 10 + 5 + 'px';
+        confete.style.height = Math.random() * 10 + 5 + 'px';
+        confete.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+        confete.style.animation = `confettiFall ${Math.random() * 2 + 1}s forwards`;
+        
+        document.body.appendChild(confete);
+        
+        // Remove o confete após a animação terminar
+        setTimeout(() => {
+          if (document.body.contains(confete)) {
+            document.body.removeChild(confete);
+          }
+        }, 3000);
+      }
+    }
+    
+    // Função para destacar um número sorteado na grade
+    function destacarNumeroSorteado(numero, isUltimo = false) {
+      const celula = document.getElementById(`num-${numero}`);
+      if (celula) {
+        celula.classList.add('sorteado');
+        
+        // Se for o último número sorteado, adiciona uma classe especial
+        if (isUltimo) {
+          // Remove a classe de último sorteado de todos os outros
+          document.querySelectorAll('.ultimo-sorteado').forEach(el => {
+            el.classList.remove('ultimo-sorteado');
+          });
+          
+          celula.classList.add('ultimo-sorteado');
+          
+          // Scroll para o elemento em dispositivos móveis
+          if (isMobileDevice()) {
+            setTimeout(() => {
+              celula.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 300);
+          }
+        }
+      }
+    }
+
+    // Escuta atualizações no número sorteado
+    db.ref("bingo/numeroAtual").on("value", (snapshot) => {
+      const numero = snapshot.val();
+      
+      if (numero !== null) {
+        // Toca o alerta
+        alertSound.play().catch(e => console.log("Não foi possível tocar o som"));
+        
+        // Reset das animações
+        numeroEl.classList.remove("animate-numero");
+        brilho.style.display = "none";
+        numeroBox.classList.remove("pulse");
+        
+        // Force reflow para reiniciar animações
+        void numeroEl.offsetWidth;
+        
+        // Efeito gradual de aparecimento do número
+        setTimeout(() => {
+          numeroEl.textContent = numero;
+          numeroEl.classList.add("animate-numero");
+          
+          // Efeito de brilho
+          brilho.style.display = "block";
+          
+          // Efeito de pulse
+          numeroBox.classList.add("pulse");
+          
+          // Destaca o número na grade
+          destacarNumeroSorteado(numero, true);
+          
+          // Toca o som de celebração após um curto atraso
+          setTimeout(() => {
+            tadaSound.play().catch(e => console.log("Não foi possível tocar o som"));
+            criarConfetes();
+          }, 500);
+        }, 100);
+      } else {
+        // O jogo foi resetado
+        numeroEl.textContent = "...";
+        limparNumerosSorteados();
+      }
+    });
+    
+    // Escuta atualizações na lista de números sorteados
+    db.ref("bingo/numerosSorteados").on("value", (snapshot) => {
+      const numeros = snapshot.val();
+      
+      // Limpa todos os números destacados primeiro
+      limparNumerosSorteados();
+      
+      if (numeros && numeros.length > 0) {
+        // Destaca todos os números sorteados
+        numeros.forEach((num, index) => {
+          const isUltimo = index === numeros.length - 1;
+          destacarNumeroSorteado(num, isUltimo);
+        });
+      } else {
+        // Se não houver números sorteados, limpa a exibição
+        limparNumerosSorteados();
+      }
+    });
+    
+    // Função para reconstruir a grade quando o tamanho da janela muda
+    function handleResize() {
+      criarGradeBingo();
+      
+      // Reaplica os números sorteados
+      db.ref("bingo/numerosSorteados").once("value", (snapshot) => {
+        const numeros = snapshot.val();
+        if (numeros && numeros.length > 0) {
+          numeros.forEach((num, index) => {
+            const isUltimo = index === numeros.length - 1;
+            destacarNumeroSorteado(num, isUltimo);
+          });
+        }
+      });
+    }
+    
+    // Listener para mudanças no tamanho da tela
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(handleResize, 300);
+    });
+    
+    // Inicializa a grade de bingo quando a página carregar
+    window.addEventListener('load', () => {
+      criarGradeBingo();
+      
+      // Sincroniza com o estado atual
+      db.ref("bingo/numerosSorteados").once("value", (snapshot) => {
+        const numeros = snapshot.val();
+        if (numeros && numeros.length > 0) {
+          numeros.forEach((num, index) => {
+            const isUltimo = index === numeros.length - 1;
+            destacarNumeroSorteado(num, isUltimo);
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
