@@ -1,30 +1,49 @@
+
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-  <title>Bingo App</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bingo Web App</title>
   <style>
     body {
-      font-family: sans-serif;
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
       text-align: center;
-      margin-top: 50px;
+      padding: 50px 20px;
+    }
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 40px;
     }
     .botao {
       display: block;
-      background: #4CAF50;
-      color: white;
-      padding: 20px;
-      margin: 20px auto;
+      width: 90%;
       max-width: 300px;
+      margin: 20px auto;
+      padding: 20px;
+      font-size: 1.2em;
+      color: white;
+      background-color: #4CAF50;
+      border: none;
+      border-radius: 12px;
       text-decoration: none;
-      border-radius: 8px;
-      font-size: 18px;
+      transition: background 0.3s;
+    }
+    .botao:hover {
+      background-color: #388E3C;
     }
   </style>
 </head>
 <body>
-  <h1>Bingo App</h1>
-  
-  <a class="botao" href="bingo-tv-improved.html">Abrir Tela da TV</a>
-  <a class="botao" href="bingo-controle.html">Abrir Controle</a>
+  <h1>Bem-vindo ao Bingo Web App</h1>
+
+  <a href="bingo-tv-improved.html" class="botao">Sou Expectador / Telão</a>
+  <a href="bingo-controle.html" class="botao">Sou Jogador</a>
+
+  <p style="margin-top: 40px; font-size: 0.9em; color: #888;">
+    Escolha como deseja participar.<br>
+    O telão é para exibição pública e os jogadores acessam o controle do bingo.
+  </p>
 </body>
 </html>
