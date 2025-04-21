@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -8,9 +7,11 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f9f9f9;
+      background-color: #111;
+      color: #f0f0f0;
       text-align: center;
       padding: 50px 20px;
+      transition: background 0.4s ease;
     }
     h1 {
       font-size: 2.5em;
@@ -33,6 +34,12 @@
     .botao:hover {
       background-color: #388E3C;
     }
+    body[data-orientacao="paisagem"] {
+      background-color: #111; /* cor escura para telão */
+    }
+    body[data-orientacao="retrato"] {
+      background-color: #000; /* cor para celular */
+    }
   </style>
 </head>
 <body>
@@ -41,9 +48,22 @@
   <a href="bingo-tv-improved.html" class="botao">Sou Expectador / Telão</a>
   <a href="bingo-controle.html" class="botao">Sou Jogador</a>
 
-  <p style="margin-top: 40px; font-size: 0.9em; color: #888;">
+  <p style="margin-top: 40px; font-size: 0.9em; color: #ccc;">
     Escolha como deseja participar.<br>
     O telão é para exibição pública e os jogadores acessam o controle do bingo.
   </p>
+
+  <script>
+    function verificarOrientacao() {
+      const largura = window.innerWidth;
+      const altura = window.innerHeight;
+      const orientacao = largura > altura ? 'paisagem' : 'retrato';
+
+      document.body.setAttribute('data-orientacao', orientacao);
+    }
+
+    window.addEventListener('load', verificarOrientacao);
+    window.addEventListener('resize', verificarOrientacao);
+  </script>
 </body>
 </html>
